@@ -15,51 +15,53 @@
     </section>
     <section class="section">
         <div class="container">
-            <div class="field">
-                <div class="control">
-                    <label class="label" for="bussiness-days">Quantos dias úteis você trabalha por mês?</label>
-                    <input class="input" type="number" id="bussiness-days" placeholder="Dias úteis por mês...">
+            <form id="input-form" class="form" action="#">
+                <div class="field">
+                    <div class="control">
+                        <label class="label" for="bussiness-days">Quantos dias úteis você trabalha por mês?</label>
+                        <input class="input" type="number" id="bussiness-days" placeholder="Dias úteis por mês...">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label class="label" for="weekdays">Quantos dias você trabalha por semena?</label>
+                        <input class="input" type="number" id="weekdays" placeholder="Dias na semana...">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label class="label" for="f2f-workdays">Quantos dias de trabalho presencial por semana?</label>
+                        <input class="input" type="number" id="f2f-workdays" placeholder="Dias presenciais na semana...">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label class="label" for="hours-week">Quantas horas você trabalha por semana?</label>
+                        <input class="input" type="number" id="hours-week" placeholder="Horas por semena...">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label class="label" for="commuter-price">Qual o gasto diário apenas para CHEGAR até o trabalho?</label>
+                        <input class="input" type="number" id="commuter-price" placeholder="Gasto para chegar no trabalho...">
+                    </div>
+                </div>
+                <div class="field">
+                    <div class="control">
+                        <label class="label" for="wage">Qual salário mensal?</label>
+                        <input class="input" type="number" id="wage" placeholder="Faz-me-rir...">
+                    </div>
+                </div>
+                <div class="field is-grouped">
+                    <div class="control">
+                      <button id="submit" class="button is-link">Calcular</button>
+                    </div>
+                    <div id="clean-form" class="control">
+                      <button class="button is-link is-light">Limpar</button>
+                    </div>
                 </div>
             </div>
-            <div class="field">
-                <div class="control">
-                    <label class="label" for="weekdays">Quantos dias você trabalha por semena?</label>
-                    <input class="input" type="number" id="weekdays" placeholder="Dias na semana...">
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    <label class="label" for="f2f-workdays">Quantos dias de trabalho presencial por semana?</label>
-                    <input class="input" type="number" id="f2f-workdays" placeholder="Dias presenciais na semana...">
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    <label class="label" for="hours-week">Quantas horas você trabalha por semana?</label>
-                    <input class="input" type="number" id="hours-week" placeholder="Horas por semena...">
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    <label class="label" for="commuter-price">Qual o gasto diário apenas para CHEGAR até o trabalho?</label>
-                    <input class="input" type="number" id="commuter-price" placeholder="Gasto para chegar no trabalho...">
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    <label class="label" for="wage">Qual salário mensal?</label>
-                    <input class="input" type="number" id="wage" placeholder="Faz-me-rir...">
-                </div>
-            </div>
-            <div class="field is-grouped">
-                <div class="control">
-                  <button id="submit" class="button is-link">Calcular</button>
-                </div>
-                <div id="clean-form" class="control">
-                  <button class="button is-link is-light">Limpar</button>
-                </div>
-            </div>
-        </div>
+            </form>
     </section>
     <section class="section">
         <div class="container">
@@ -96,16 +98,54 @@
     <script>
         document.getElementById('clean-form').addEventListener('click', () => {
             console.log('reset');
-            document.getElementById('bussiness-days').value='';
-            document.getElementById('weekdays').value='';
-            document.getElementById('f2f-workdays').value='';
-            document.getElementById('hours-week').value='';
-            document.getElementById('commuter-price').value='';
-            document.getElementById('wage').value='';
+            document.getElementById('input-form').reset();
         });
-        document.getElementById('submit').addEventListener('click', () => {
+        document.getElementById('submit').addEventListener('click', (event) => {
             console.log('submit');
-            
+            event.preventDefault();
+
+            const WEEK_IN_MONTH = 4;
+            const ROUND_TRIP_FACTOR = 2;
+            const SIX_PERCENT = 6/100;
+
+            const calcCommuterSpend         = (f2fWorkingDays, commuterPrice) => f2fWorkingDays * WEEK_IN_MONTH * commuterPrice * ROUND_TRIP_FACTOR;
+            const calcSixPercentWage        = (monthyWage) => monthyWage * SIX_PERCENT;
+            const calcIncomeBracket         = (commuterSpend, sixPercentWage) => (commuterSpend < sixPercentWage)
+                                                                                    ? commuterSpend
+                                                                                    : sixPercentWage;
+            const calcHoursPerMonth         = (weekDays, hoursWeek) => weekDays * hoursWeek * WEEK_IN_MONTH;
+            const calcHourlyWage            = (monthlyWage, weekDays) => monthlyWage/(weekDays * WEEK_IN_MONTH);
+            const calcHoursPayedForCommuter = (incomeBracket, hourlyWage) => incomeBracket / hourlyWage;
+
+
+            const bussinesDaysInput   = document.getElementById('bussiness-days').value;
+            const weekdaysInput       = document.getElementById('weekdays').value;
+            const f2fWorkingdaysInput = document.getElementById('f2f-workdays').value;
+            const hoursWeekInput      = document.getElementById('hours-week').value;
+            const commuterPriceInput  = document.getElementById('commuter-price').value;
+            const monthyWageInput     = document.getElementById('wage').value;
+
+            const commuterSpendData      = document.getElementById('commuter-spend');
+            const sixPercentData         = document.getElementById('six-per');
+            const incomeBracketData      = document.getElementById('income-bracket');
+            const whpmData               = document.getElementById('working-hours-per-month');
+            const hourlyWageData         = document.getElementById('hourly-wage');
+            const commuterHoursPayedData = document.getElementById('commuter-hours-payed');
+
+            let commuterSpend = calcCommuterSpend(f2fWorkingdaysInput, commuterPriceInput);
+            let sixPercent = calcSixPercentWage(monthyWageInput);
+            let incomeBracket = calcIncomeBracket(commuterSpend, sixPercent);
+            let whpm = calcHoursPerMonth(weekdaysInput, hoursWeekInput);
+            let hourlyWage = calcHourlyWage(monthyWageInput, hoursWeekInput);
+            let commuterHoursPayed = calcCommuterSpend(incomeBracket, hourlyWage);
+
+
+            commuterSpendData.innerText = commuterSpend;
+            sixPercentData.innerText = sixPercent;
+            incomeBracketData.innerText = incomeBracket;
+            whpmData.innerText = whpm;
+            hourlyWageData.innerText = hourlyWage 
+            commuterHoursPayedData.innerText = commuterHoursPayed;
         });
     </script>
 </body>
